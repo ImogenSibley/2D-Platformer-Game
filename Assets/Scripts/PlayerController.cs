@@ -11,6 +11,9 @@ public class PlayerController : MonoBehaviour
     public float airControlForce = 10.0f;
     public float airControlMax = 1.5f;
     Vector2 boxExtents;
+
+    public AudioSource coinSound;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -37,7 +40,7 @@ public class PlayerController : MonoBehaviour
 
         if (rigidBody.velocity.x * transform.localScale.x < 0.0f)
         {
-            transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
+            transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z); //sprite movement
         }
 
     }
@@ -65,6 +68,14 @@ public class PlayerController : MonoBehaviour
                 if (h * vx < airControlMax)
                     rigidBody.AddForce(new Vector2(h * airControlForce, 0));
             }
+        }
+    }
+    void OnTriggerEnter2D(Collider2D coll)
+    {
+        if (coll.gameObject.tag == "Coin")
+        {
+            Destroy(coll.gameObject);
+            coinSound.Play();
         }
     }
 }
