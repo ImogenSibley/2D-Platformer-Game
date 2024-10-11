@@ -19,6 +19,9 @@ public class PlayerController : MonoBehaviour
     int totalCoins;
     int coinsCollected;
 
+    string curLevel;
+    string nextLevel;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -30,6 +33,13 @@ public class PlayerController : MonoBehaviour
         // find out how many coins in the level
         coinsCollected = 0;
         totalCoins = GameObject.FindGameObjectsWithTag("Coin").Length;
+
+        curLevel = SceneManager.GetActiveScene().name;
+        if (curLevel == "Level1")
+            nextLevel = "Level2";
+        else if (curLevel == "Level2")
+            nextLevel = "Finished";
+
     }
 
     // Update is called once per frame
@@ -48,10 +58,12 @@ public class PlayerController : MonoBehaviour
         if (blinkVal < 1.0f)
             animator.SetTrigger("blinkTrigger"); //for blinking animation
 
+
         if (rigidBody.velocity.x * transform.localScale.x < 0.0f)
         {
             transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z); //sprite movement
         }
+
 
     }
     void FixedUpdate()
@@ -88,13 +100,43 @@ public class PlayerController : MonoBehaviour
             coinSound.Play();
             coinsCollected++;
         }
+        if (coll.gameObject.tag == "Level End")
+        {
+            // hide the level end object
+            coll.gameObject.SetActive(false);
+            StartCoroutine(LoadNextLevel());
+        }
+
     }
     void OnCollisionEnter2D(Collision2D coll)
     {
         if (coll.gameObject.tag == "Death")
         {
-            SceneManager.LoadScene(0);
+            StartCoroutine(DoDeath());
         }
     }
+    IEnumerator DoDeath()
+    {
+        // freeze the rigidbody
+        rigidBody.constraints = RigidbodyConstraints2D.FreezeAll;
+        // hide the player
+        GetComponent<Renderer>().enabled = false;
+        // reload the level in 2 seconds
+        yield return new WaitForSeconds(2);
+        SceneManager.LoadScene(curLevel);
+    }
+    
+    IEnumerator LoadNextLevel()
+    {
+        if (nextLevel != "Finished")
+        {
+            // hide the player
+            GetComponent<Renderer>().enabled = false;
+            yield return new WaitForSeconds(2);
+            SceneManager.LoadScene(nextLevel);
+        }
+    }
+
+
 
 }
