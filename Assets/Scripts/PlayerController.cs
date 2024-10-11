@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,6 +14,9 @@ public class PlayerController : MonoBehaviour
     Vector2 boxExtents;
 
     public AudioSource coinSound;
+    public TextMeshProUGUI uiText;
+    int totalCoins;
+    int coinsCollected;
 
     // Start is called before the first frame update
     void Start()
@@ -21,11 +25,18 @@ public class PlayerController : MonoBehaviour
         boxExtents = GetComponent<BoxCollider2D>().bounds.extents;
         rigidBody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+       
+        // find out how many coins in the level
+        coinsCollected = 0;
+        totalCoins = GameObject.FindGameObjectsWithTag("Coin").Length;
     }
 
     // Update is called once per frame
     void Update()
     {
+        string uiString = "x " + coinsCollected + "/" + totalCoins;
+        uiText.text = uiString;
+
         float xSpeed = Mathf.Abs(rigidBody.velocity.x);
         animator.SetFloat("xSpeed", xSpeed); //for running animation
 
@@ -35,8 +46,6 @@ public class PlayerController : MonoBehaviour
         float blinkVal = Random.Range(0.0f, 200.0f);
         if (blinkVal < 1.0f)
             animator.SetTrigger("blinkTrigger"); //for blinking animation
-
-
 
         if (rigidBody.velocity.x * transform.localScale.x < 0.0f)
         {
@@ -76,6 +85,7 @@ public class PlayerController : MonoBehaviour
         {
             Destroy(coll.gameObject);
             coinSound.Play();
+            coinsCollected++;
         }
     }
 }
