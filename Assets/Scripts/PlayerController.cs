@@ -9,7 +9,7 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D rigidBody;
     Animator animator;
     public float speed = 5.0f;
-    public float jumpForce = 8.0f;
+    public float jumpForce = 9.0f;
     public float airControlForce = 10.0f;
     public float airControlMax = 1.5f;
     Vector2 boxExtents;
@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
 
     public AudioSource coinSound;
     public TextMeshProUGUI uiText;
+    public TextMeshProUGUI levelCompleteText; //level end text
     int totalCoins;
     int coinsCollected;
 
@@ -87,7 +88,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             // allow a small amount of movement in the air
-            float vx = rigidBody.velocity.x * 2.0f;
+            float vx = rigidBody.velocity.x;
             if (h * vx < airControlMax)
             {
                 rigidBody.AddForce(new Vector2(h * airControlForce, 0));
@@ -139,8 +140,12 @@ public class PlayerController : MonoBehaviour
     {
         if (nextLevel != "Finished")
         {
+            // Show "Level Complete" text
+            levelCompleteText.gameObject.SetActive(true);
+
             // hide the player
             GetComponent<Renderer>().enabled = false;
+
             yield return new WaitForSeconds(2);
             SceneManager.LoadScene(nextLevel);
         }
@@ -157,7 +162,8 @@ public class PlayerController : MonoBehaviour
         GetComponent<Renderer>().enabled = false;
 
         // Display "Game Finished" message or credits
-        Debug.Log("Congratulations! You've finished the game!");
+        levelCompleteText.text = "Game Complete!";
+        levelCompleteText.gameObject.SetActive(true);
         
         // Wait for a few seconds before going back to main menu or quitting
         yield return new WaitForSeconds(2);
