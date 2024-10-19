@@ -14,6 +14,8 @@ public class PlayerController : MonoBehaviour
     public float airControlMax = 1.5f;
     Vector2 boxExtents;
 
+    public Vector3 movement;
+
     public AudioSource coinSound;
     public TextMeshProUGUI uiText;
     int totalCoins;
@@ -58,13 +60,6 @@ public class PlayerController : MonoBehaviour
         if (blinkVal < 1.0f)
             animator.SetTrigger("blinkTrigger"); //for blinking animation
 
-
-        if (rigidBody.velocity.x * transform.localScale.x < 0.0f)
-        {
-            transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z); //sprite movement
-        }
-
-
     }
     void FixedUpdate()
     {
@@ -81,15 +76,28 @@ public class PlayerController : MonoBehaviour
         bool grounded = result.collider != null && result.normal.y > 0.9f;
         if (grounded)
         {
+
+            // Horizontal movement when grounded, multiplied by the speed modifier
+            Vector2 movement = new Vector2(h * speed, rigidBody.velocity.y);
+            rigidBody.velocity = movement;
+
             if (Input.GetAxis("Jump") > 0.0f)
                 rigidBody.AddForce(new Vector2(0.0f, jumpForce), ForceMode2D.Impulse);
-            else
+        }
+        else
+        {
+            // allow a small amount of movement in the air
+            float vx = rigidBody.velocity.x * 2.0f;
+            if (h * vx < airControlMax)
             {
-                // allow a small amount of movement in the air
-                float vx = rigidBody.velocity.x;
-                if (h * vx < airControlMax)
-                    rigidBody.AddForce(new Vector2(h * airControlForce, 0));
+                rigidBody.AddForce(new Vector2(h * airControlForce, 0));
             }
+        }
+
+        if (rigidBody.velocity.x * transform.localScale.x < 0.0f) //check for sprite flipping
+        {
+            //flip sprite based on direction
+            transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
         }
     }
     void OnTriggerEnter2D(Collider2D coll)
@@ -115,6 +123,7 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(DoDeath());
         }
     }
+
     IEnumerator DoDeath()
     {
         // freeze the rigidbody
@@ -135,6 +144,28 @@ public class PlayerController : MonoBehaviour
             yield return new WaitForSeconds(2);
             SceneManager.LoadScene(nextLevel);
         }
+        else
+        {
+            //Game is finished 
+            StartCoroutine(EndGame()); 
+        }
+    }
+
+    IEnumerator EndGame()
+    {
+        // Optionally hide the player or display a "Game Over" screen
+        GetComponent<Renderer>().enabled = false;
+
+        // Display "Game Finished" message or credits
+        Debug.Log("Congratulations! You've finished the game!");
+        
+        // Wait for a few seconds before going back to main menu or quitting
+        yield return new WaitForSeconds(2);
+
+        // Go back to the main menu or quit the game
+        SceneManager.LoadScene("Level1"); //resets game to level 1 temporarily
+
+        // Application.Quit();  //to quit application but will only work on built game
     }
 
 
